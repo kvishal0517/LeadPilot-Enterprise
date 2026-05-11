@@ -26,17 +26,59 @@ export default function Leads() {
 
   const { data: leads = [], isLoading } = useQuery({
     queryKey: ["leads"],
-    queryFn: () => entities.Lead.list("-created_date", 200),
+    queryFn: async () => {
+      // 1. Always start with local database leads
+      const localLeads = await entities.Lead.list("-created_date", 1000);
+      
+      // 2. Check for Google Sheets configuration
+      const settingsList = await entities.Settings.list();
+      const sheetsUrl = settingsList.find(s => s.key === 'sheets_url')?.value;
+      
+      if (!sheetsUrl) return localLeads;
+      
+      try {
+        // 3. Attempt to fetch remote leads from Sheets
+        const response = await fetch(`/api/proxy/leads?url=${encodeURIComponent(sheetsUrl)}`);
+        if (!response.ok) return localLeads;
+        const sheetData = await response.json();
+        
+        if (!Array.isArray(sheetData)) return localLeads;
+
+        // 4. Map and merge
+        const mappedSheetLeads = sheetData.map(l => ({
+          id: l.email || `sheet-${Math.random().toString(36).substr(2, 9)}`,
+          company_name: l.company || l.company_name,
+          industry: l.industry,
+          contact_name: l.contact || l.contact_name,
+          contact_email: l.email || l.contact_email,
+          icp_score: l.score || l.icp_score,
+          email_subject: l.subject || l.email_subject,
+          email_body: l.body || l.email_body,
+          status: 'drafted',
+          created_at: l.date || new Date().toISOString(),
+          isFromSheet: true
+        }));
+
+        // Deduplicate: Prioritize local leads over sheet leads if email matches
+        const combined = [...localLeads];
+        const localEmails = new Set(localLeads.map(l => l.contact_email?.toLowerCase()).filter(Boolean));
+        
+        mappedSheetLeads.forEach(sl => {
+          if (sl.contact_email && !localEmails.has(sl.contact_email.toLowerCase())) {
+            combined.push(sl);
+          }
+        });
+        
+        return combined;
+      } catch (error) {
+        console.error("Sheets Fetch Error:", error);
+        return localLeads;
+      }
+    },
   });
 
   const handleDelete = async (id) => {
-    try {
-      await entities.Lead.delete(id);
-      queryClient.invalidateQueries(["leads"]);
-      toast.success("Lead removed from intelligence database.");
-    } catch (error) {
-      toast.error("Failed to delete lead.");
-    }
+    toast.error("Deletion is only available in your Google Sheet for synchronized data.");
   };
 
   const filteredLeads = leads
@@ -45,37 +87,35 @@ export default function Leads() {
         (lead.company_name?.toLowerCase() || "").includes(search.toLowerCase()) || 
         (lead.industry?.toLowerCase() || "").includes(search.toLowerCase())
       );
-      const matchesStatus = statusFilter === "all" || lead.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      return matchesSearch;
     })
     .sort((a, b) => {
       if (sortBy === "score") return (b.icp_score || 0) - (a.icp_score || 0);
       return new Date(b.created_at) - new Date(a.created_at);
     });
 
-  const handleExport = () => {
-    const headers = ["Company", "Industry", "Status", "Contact", "Email", "ICP Score"];
-    const rows = filteredLeads.map(l => [
-      l.company_name, l.industry, l.status, l.contact_name, l.contact_email, l.icp_score
-    ]);
-    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", `leadpilot_export_${new Date().toISOString().split('T')[0]}.csv`);
-    link.click();
+  const handleExport = async () => {
+    const settingsList = await entities.Settings.list();
+    const sheetsUrl = settingsList.find(s => s.key === 'sheets_url')?.value;
+    if (!sheetsUrl) {
+       toast.error("Google Sheets URL not configured.");
+       return;
+    }
+
+    const downloadUrl = `/api/proxy/export-csv?url=${encodeURIComponent(sheetsUrl)}`;
+    window.open(downloadUrl, '_blank');
+    toast.success("Downloading database from Google Sheets...");
   };
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-12 font-jakarta">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-[0.2em]">
             <Building2 className="w-3.5 h-3.5" />
             <span>Market Intelligence</span>
           </div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Lead Explorer</h1>
+          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight font-outfit">Lead Explorer</h1>
           <p className="text-slate-500 font-medium">Verified B2B opportunities across global sectors.</p>
         </div>
         <Button variant="outline" onClick={handleExport} className="rounded-xl h-14 px-8 border-slate-200 hover:bg-slate-50 hover:border-slate-300 font-bold gap-3 shadow-sm transition-all active:scale-95 bg-white">
@@ -90,7 +130,7 @@ export default function Leads() {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input 
             placeholder="Search company, sector or persona..." 
-            className="pl-12 h-14 rounded-xl border-none bg-white shadow-sm placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-blue-500/20 text-base"
+            className="pl-12 h-14 rounded-xl border-none bg-white shadow-sm placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-blue-500/20 text-base font-medium"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />

@@ -79,9 +79,9 @@ export default function Analytics() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 font-jakarta">
       <header>
-        <h1 className="text-3xl font-grotesk font-bold tracking-tight">Analytics</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight font-outfit">Analytics</h1>
         <p className="text-muted-foreground mt-1">Deep dive into your lead generation performance.</p>
       </header>
 
@@ -101,7 +101,7 @@ export default function Analytics() {
         <div className="bg-card border rounded-2xl p-6">
           <div className="flex items-center gap-2 mb-6">
             <BarChart3 className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-semibold">Industry Distribution</h3>
+            <h3 className="text-lg font-bold font-outfit">Industry Distribution</h3>
           </div>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -128,7 +128,7 @@ export default function Analytics() {
         <div className="bg-card border rounded-2xl p-6">
           <div className="flex items-center gap-2 mb-6">
             <PieChartIcon className="w-5 h-5 text-accent" />
-            <h3 className="text-lg font-semibold">Lead Status Distribution</h3>
+            <h3 className="text-lg font-bold font-outfit">Lead Status Distribution</h3>
           </div>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -159,7 +159,7 @@ export default function Analytics() {
       <div className="bg-card border rounded-2xl p-6">
         <div className="flex items-center gap-2 mb-6">
           <TrendingUp className="w-5 h-5 text-success" />
-          <h3 className="text-lg font-semibold">Agent Run Performance</h3>
+          <h3 className="text-lg font-bold font-outfit">Agent Run Performance</h3>
         </div>
         <div className="h-[350px]">
           <ResponsiveContainer width="100%" height="100%">

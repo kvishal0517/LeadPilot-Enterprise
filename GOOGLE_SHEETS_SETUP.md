@@ -13,25 +13,49 @@ To enable automatic syncing of leads to Google Sheets, follow these steps:
 - Delete any existing code and paste the following:
 
 ```javascript
+function doGet(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Leads");
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0];
+  var rows = data.slice(1);
+  
+  var result = rows.map(function(row) {
+    var obj = {};
+    headers.forEach(function(header, i) {
+      obj[header.toLowerCase().replace(/ /g, "_")] = row[i];
+    });
+    return obj;
+  });
+  
+  return ContentService.createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
 function doPost(e) {
   var data = JSON.parse(e.postData.contents);
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(data.tabName || "Leads");
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(data.tabName || "Leads");
   
   if (!sheet) {
     return ContentService.createTextOutput("Sheet not found").setMimeType(ContentService.MimeType.TEXT);
   }
   
+  // Get existing emails for deduplication
+  var existingEmails = sheet.getRange("D:D").getValues().flat();
+  
   data.leads.forEach(function(lead) {
-    sheet.appendRow([
-      lead.company,
-      lead.industry,
-      lead.contact,
-      lead.email,
-      lead.score,
-      lead.subject,
-      lead.body,
-      lead.date
-    ]);
+    if (existingEmails.indexOf(lead.email) === -1) {
+      sheet.appendRow([
+        lead.company,
+        lead.industry,
+        lead.contact,
+        lead.email,
+        lead.score,
+        lead.subject,
+        lead.body,
+        lead.date
+      ]);
+    }
   });
   
   return ContentService.createTextOutput("Success").setMimeType(ContentService.MimeType.TEXT);

@@ -11,12 +11,13 @@ import {
   ArrowUpRight,
   Target,
   ShieldCheck,
-  MousePointer2
+  MousePointer2,
+  Activity
 } from "lucide-react";
 import { entities } from "@/api/db";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-
+import { cn } from "@/lib/utils";
 export default function Dashboard() {
   const { data: leads = [] } = useQuery({
     queryKey: ["leads-summary"],
@@ -63,14 +64,14 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-12 font-jakarta">
       <header className="flex justify-between items-end">
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-[0.2em]">
             <ShieldCheck className="w-3.5 h-3.5" />
             <span>Mission Control Active</span>
           </div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Overview</h1>
+          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight font-outfit">Overview</h1>
         </div>
         <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-14 px-8 font-bold shadow-xl shadow-blue-200 transition-all hover:scale-[1.02] active:scale-95 group">
           <Link to="/run" className="flex items-center gap-3">
@@ -102,7 +103,7 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{stat.label}</p>
-              <p className="text-4xl font-black text-slate-900 mt-2 tabular-nums tracking-tight">{stat.value}</p>
+              <p className="text-4xl font-extrabold text-slate-900 mt-2 tabular-nums tracking-tight font-outfit">{stat.value}</p>
             </div>
           </motion.div>
         ))}
@@ -134,7 +135,7 @@ export default function Dashboard() {
                     {lead.company_name[0]}
                   </div>
                   <div>
-                    <p className="text-base font-bold text-slate-900">{lead.company_name}</p>
+                    <p className="text-base font-bold text-slate-900 font-outfit">{lead.company_name}</p>
                     <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-2">
                        <span>{lead.industry}</span>
                        <span className="w-1 h-1 bg-slate-300 rounded-full" />
@@ -172,7 +173,7 @@ export default function Dashboard() {
                  </div>
                  <h3 className="font-bold text-slate-200">Scheduled Operations</h3>
               </div>
-              <p className="text-6xl font-black tracking-tighter text-white">08:00<span className="text-blue-500">AM</span></p>
+              <p className="text-6xl font-extrabold tracking-tighter text-white font-outfit">08:00<span className="text-blue-500">AM</span></p>
               <p className="text-slate-400 mt-4 text-sm font-medium">Daily Autonomous Sync (IST)</p>
               
               <div className="mt-14 space-y-4">
@@ -201,6 +202,4 @@ export default function Dashboard() {
   );
 }
 
-function cn(...classes) {
-  return classes.filter(Boolean).join(' ');
-}
+

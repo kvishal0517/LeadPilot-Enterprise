@@ -39,7 +39,7 @@ async function invokeLLM(prompt, settings, jsonMode = true) {
     try {
       data = JSON.parse(text);
     } catch (e) {
-      throw new Error(`Invalid response from backend: ${text.substring(0, 100)}`);
+      throw new Error(`Invalid response from backend (Status ${response.status}): ${text.substring(0, 100) || '(empty response)'}`);
     }
 
     if (!response.ok) {
@@ -65,20 +65,31 @@ async function discoverLeads(settings, onLog) {
   onLog(`📡 Scanning Global B2B Network via Backend Relay...`);
   
   const targetLocation = settings.target_location || "anywhere";
-  const prompt = `Task: Real-time B2B Discovery. 
-  Target: Exactly 20 real and unique companies in ${settings.icp_keywords}.
-  STRICT LOCATION REQUIREMENT: All companies MUST be located in ${targetLocation}. Do not return leads from any other location.
+  const keywords = settings.icp_keywords || "B2B companies";
+  
+  const prompt = `Task: High-Precision B2B Discovery.
+  Context: You are a lead generation expert. Your goal is to find real, verifiable companies that actually exist.
+  
+  Target Industries/Keywords: ${keywords}
+  STRICT LOCATION REQUIREMENT: ${targetLocation}
+  
+  STRICT RULES:
+  1. All companies MUST be physically located in ${targetLocation}.
+  2. The 'domain' MUST be a valid, active website. If the website is unknown, find the correct LinkedIn company page URL instead.
+  3. The 'contact_email' must follow a professional format (e.g., name@company.com).
+  4. DO NOT HALLUCINATE. Only return companies that you have high confidence are real.
+  5. Return Exactly 10 high-quality leads.
   
   Return valid JSON: { 
     "leads": [
       {
         "company_name": "Exact Legal Name",
         "industry": "Specific Sector",
-        "domain": "website.com",
+        "domain": "website.com or linkedin.com/company/...",
         "contact_name": "Decision Maker Name",
         "contact_email": "email@domain.com",
-        "linkedin_url": "https://linkedin.com/in/...",
-        "pain_points": "Detailed pain points"
+        "linkedin_url": "https://linkedin.com/in/personal-profile",
+        "pain_points": "Detailed pain points based on their likely current tech stack or market position"
       }
     ] 
   }`;
@@ -195,13 +206,13 @@ export async function runAgentPipeline({ onStageChange, onLogUpdate, onMetricsUp
     }));
     onMetricsUpdate({ drafted: drafted.length });
 
+    updateLog(`💾 Saving ${drafted.length} leads to local database...`);
+    for (const lead of drafted) {
+      await entities.Lead.create(lead);
+    }
+
     onStageChange('syncing');
     await syncToSheets(drafted, settings, updateLog);
-
-    updateLog("💾 Finalizing Secure Local Storage...");
-    for (const lead of drafted) {
-      await entities.Lead.create({ ...lead, run_date: run.run_date });
-    }
 
     await entities.AgentRun.update(run.id, {
       status: 'completed',
@@ -210,7 +221,7 @@ export async function runAgentPipeline({ onStageChange, onLogUpdate, onMetricsUp
       duration_seconds: Math.floor((new Date() - new Date(run.created_at)) / 1000)
     });
 
-    updateLog("🏁 Mission Accomplished. End of Operation.");
+    updateLog("🏁 Mission Accomplished. All data synchronized to Google Sheets.");
     onStageChange('done');
 
   } catch (error) {

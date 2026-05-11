@@ -78,9 +78,9 @@ export default function RunAgent() {
   };
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 font-jakarta">
       <header>
-        <h1 className="text-3xl font-bold text-slate-900">Agent Deployment</h1>
+        <h1 className="text-3xl font-extrabold text-slate-900 font-outfit">Agent Deployment</h1>
         <p className="text-slate-500 mt-1">Initialize the autonomous pipeline to discover and enrich leads.</p>
       </header>
 
@@ -90,7 +90,7 @@ export default function RunAgent() {
           <div className="flex-1">
             <h4 className="font-bold text-amber-900">AI Configuration Missing</h4>
             <p className="text-sm text-amber-700 mt-1 leading-relaxed">
-              Strict Mode is active. To perform real-time lead discovery, you must provide a <strong>Hugging Face API Key</strong>. 
+              Strict Mode is active. To perform real-time lead discovery, you must provide a <strong>Gemini API Key</strong>. 
               Missions will fail until the system is authenticated.
             </p>
             <Button asChild variant="outline" className="mt-4 border-amber-200 hover:bg-amber-100 text-amber-800 rounded-lg h-9 px-4 text-xs font-bold shadow-sm">
@@ -123,7 +123,7 @@ export default function RunAgent() {
           </div>
 
           <div className="space-y-3">
-            <h2 className="text-3xl font-bold text-slate-900 tracking-tight">
+            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight font-outfit">
               {isRunning ? `${stage.charAt(0).toUpperCase() + stage.slice(1)}...` : 
                runStatus === 'success' ? "Operation Accomplished" :
                runStatus === 'error' ? "Deployment Aborted" : "Ready for Deployment"}

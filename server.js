@@ -83,6 +83,61 @@ app.post('/api/proxy/sheets', async (req, res) => {
   }
 });
 
+// Relay endpoint for fetching leads from Sheets
+app.get('/api/proxy/leads', async (req, res) => {
+  const { url } = req.query;
+  if (!url) return res.status(400).json({ error: "Missing Sheets URL" });
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error("[Relay] Fetch Leads Error:", error.message);
+    res.status(500).json({ error: "Fetch Relay Failure" });
+  }
+});
+
+// Relay endpoint for CSV Export from Google Sheet
+app.get('/api/proxy/export-csv', async (req, res) => {
+  const { url } = req.query;
+  if (!url) return res.status(400).json({ error: "Missing Sheets URL" });
+
+  try {
+    // Attempt to transform App Script URL to CSV Export URL
+    // Standard Google Sheet URL: https://docs.google.com/spreadsheets/d/ID/edit
+    // We need the ID. User provides Web App URL, which is different.
+    // If we can't get ID, we'll fetch JSON and convert to CSV on the fly.
+    
+    const response = await fetch(url);
+    const leads = await response.json();
+    
+    if (!Array.isArray(leads)) throw new Error("Invalid data format from Sheets");
+
+    const headers = ["Company", "Industry", "Contact", "Email", "Score", "Subject", "Body", "Date"];
+    const rows = leads.map(l => [
+      l.company || l.company_name, 
+      l.industry, 
+      l.contact || l.contact_name, 
+      l.email || l.contact_email, 
+      l.score || l.icp_score, 
+      l.subject || l.email_subject, 
+      l.body || l.email_body, 
+      l.date
+    ]);
+
+    const csvContent = [headers.join(","), ...rows.map(r => r.map(c => `"${String(c || '').replace(/"/g, '""')}"`).join(","))].join("\n");
+    
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename=leadpilot_export_${new Date().toISOString().split('T')[0]}.csv`);
+    res.send(csvContent);
+
+  } catch (error) {
+    console.error("[Relay] Export Error:", error.message);
+    res.status(500).json({ error: "Export Relay Failure" });
+  }
+});
+
 app.listen(port, () => {
   console.log(`[${new Date().toISOString()}] 🚀 LeadPilot Backend Relay active on port ${port}`);
 });
