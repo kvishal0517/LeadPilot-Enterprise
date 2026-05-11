@@ -27,27 +27,53 @@ export default function Leads() {
   const { data: leads = [], isLoading } = useQuery({
     queryKey: ["leads"],
     queryFn: async () => {
+      // 1. Always start with local database leads
+      const localLeads = await entities.Lead.list("-created_date", 1000);
+      
+      // 2. Check for Google Sheets configuration
       const settingsList = await entities.Settings.list();
       const sheetsUrl = settingsList.find(s => s.key === 'sheets_url')?.value;
-      if (!sheetsUrl) return [];
       
-      const response = await fetch(`/api/proxy/leads?url=${encodeURIComponent(sheetsUrl)}`);
-      if (!response.ok) throw new Error("Failed to fetch leads from Sheets");
-      const data = await response.json();
+      if (!sheetsUrl) return localLeads;
       
-      // Map sheet headers to app properties
-      return data.map(l => ({
-        id: l.email || Math.random().toString(),
-        company_name: l.company,
-        industry: l.industry,
-        contact_name: l.contact,
-        contact_email: l.email,
-        icp_score: l.score,
-        email_subject: l.subject,
-        email_body: l.body,
-        status: 'drafted', // Default for sheet leads
-        created_at: l.date
-      }));
+      try {
+        // 3. Attempt to fetch remote leads from Sheets
+        const response = await fetch(`/api/proxy/leads?url=${encodeURIComponent(sheetsUrl)}`);
+        if (!response.ok) return localLeads;
+        const sheetData = await response.json();
+        
+        if (!Array.isArray(sheetData)) return localLeads;
+
+        // 4. Map and merge
+        const mappedSheetLeads = sheetData.map(l => ({
+          id: l.email || `sheet-${Math.random().toString(36).substr(2, 9)}`,
+          company_name: l.company || l.company_name,
+          industry: l.industry,
+          contact_name: l.contact || l.contact_name,
+          contact_email: l.email || l.contact_email,
+          icp_score: l.score || l.icp_score,
+          email_subject: l.subject || l.email_subject,
+          email_body: l.body || l.email_body,
+          status: 'drafted',
+          created_at: l.date || new Date().toISOString(),
+          isFromSheet: true
+        }));
+
+        // Deduplicate: Prioritize local leads over sheet leads if email matches
+        const combined = [...localLeads];
+        const localEmails = new Set(localLeads.map(l => l.contact_email?.toLowerCase()).filter(Boolean));
+        
+        mappedSheetLeads.forEach(sl => {
+          if (sl.contact_email && !localEmails.has(sl.contact_email.toLowerCase())) {
+            combined.push(sl);
+          }
+        });
+        
+        return combined;
+      } catch (error) {
+        console.error("Sheets Fetch Error:", error);
+        return localLeads;
+      }
     },
   });
 
