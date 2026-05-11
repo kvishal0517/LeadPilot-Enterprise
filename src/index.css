@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --background: #ffffff;
+  --foreground: #000000;
+  --sidebar: #09090b;
+  --sidebar-foreground: #ffffff;
+  --accent: #3b82f6;
+  --border: #e2e8f0;
+}
+
+@layer base {
+  body {
+    @apply bg-white text-slate-950 font-sans antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-black text-white px-4 py-2 rounded-lg font-medium hover:bg-zinc-800 transition-colors;
+  }
+  
+  .card {
+    @apply bg-white border border-slate-200 rounded-xl p-6 shadow-sm;
+  }
+
+  .nav-item {
+    @apply flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors;
+  }
+
+  .nav-item-active {
+    @apply bg-zinc-800 text-white;
+  }
+
+  .nav-item-inactive {
+    @apply text-zinc-400 hover:text-white hover:bg-zinc-800/50;
+  }
+}
