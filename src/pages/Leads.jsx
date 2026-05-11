@@ -26,17 +26,33 @@ export default function Leads() {
 
   const { data: leads = [], isLoading } = useQuery({
     queryKey: ["leads"],
-    queryFn: () => entities.Lead.list("-created_date", 200),
+    queryFn: async () => {
+      const settingsList = await entities.Settings.list();
+      const sheetsUrl = settingsList.find(s => s.key === 'sheets_url')?.value;
+      if (!sheetsUrl) return [];
+      
+      const response = await fetch(`/api/proxy/leads?url=${encodeURIComponent(sheetsUrl)}`);
+      if (!response.ok) throw new Error("Failed to fetch leads from Sheets");
+      const data = await response.json();
+      
+      // Map sheet headers to app properties
+      return data.map(l => ({
+        id: l.email || Math.random().toString(),
+        company_name: l.company,
+        industry: l.industry,
+        contact_name: l.contact,
+        contact_email: l.email,
+        icp_score: l.score,
+        email_subject: l.subject,
+        email_body: l.body,
+        status: 'drafted', // Default for sheet leads
+        created_at: l.date
+      }));
+    },
   });
 
   const handleDelete = async (id) => {
-    try {
-      await entities.Lead.delete(id);
-      queryClient.invalidateQueries(["leads"]);
-      toast.success("Lead removed from intelligence database.");
-    } catch (error) {
-      toast.error("Failed to delete lead.");
-    }
+    toast.error("Deletion is only available in your Google Sheet for synchronized data.");
   };
 
   const filteredLeads = leads
@@ -45,37 +61,35 @@ export default function Leads() {
         (lead.company_name?.toLowerCase() || "").includes(search.toLowerCase()) || 
         (lead.industry?.toLowerCase() || "").includes(search.toLowerCase())
       );
-      const matchesStatus = statusFilter === "all" || lead.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      return matchesSearch;
     })
     .sort((a, b) => {
       if (sortBy === "score") return (b.icp_score || 0) - (a.icp_score || 0);
       return new Date(b.created_at) - new Date(a.created_at);
     });
 
-  const handleExport = () => {
-    const headers = ["Company", "Industry", "Status", "Contact", "Email", "ICP Score"];
-    const rows = filteredLeads.map(l => [
-      l.company_name, l.industry, l.status, l.contact_name, l.contact_email, l.icp_score
-    ]);
-    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", `leadpilot_export_${new Date().toISOString().split('T')[0]}.csv`);
-    link.click();
+  const handleExport = async () => {
+    const settingsList = await entities.Settings.list();
+    const sheetsUrl = settingsList.find(s => s.key === 'sheets_url')?.value;
+    if (!sheetsUrl) {
+       toast.error("Google Sheets URL not configured.");
+       return;
+    }
+
+    const downloadUrl = `/api/proxy/export-csv?url=${encodeURIComponent(sheetsUrl)}`;
+    window.open(downloadUrl, '_blank');
+    toast.success("Downloading database from Google Sheets...");
   };
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-12 font-jakarta">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-[0.2em]">
             <Building2 className="w-3.5 h-3.5" />
             <span>Market Intelligence</span>
           </div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Lead Explorer</h1>
+          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight font-outfit">Lead Explorer</h1>
           <p className="text-slate-500 font-medium">Verified B2B opportunities across global sectors.</p>
         </div>
         <Button variant="outline" onClick={handleExport} className="rounded-xl h-14 px-8 border-slate-200 hover:bg-slate-50 hover:border-slate-300 font-bold gap-3 shadow-sm transition-all active:scale-95 bg-white">
@@ -90,7 +104,7 @@ export default function Leads() {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input 
             placeholder="Search company, sector or persona..." 
-            className="pl-12 h-14 rounded-xl border-none bg-white shadow-sm placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-blue-500/20 text-base"
+            className="pl-12 h-14 rounded-xl border-none bg-white shadow-sm placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-blue-500/20 text-base font-medium"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
