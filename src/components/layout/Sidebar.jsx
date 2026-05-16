@@ -6,7 +6,6 @@ import {
   BarChart2, 
   Settings, 
   Zap,
-  Globe,
   Circle
 } from "lucide-react";
 import { cn } from "@/lib/utils";

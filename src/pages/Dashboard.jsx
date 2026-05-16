@@ -18,10 +18,12 @@ import { entities } from "@/api/db";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { fetchCombinedLeads } from "@/lib/leadFetcher";
+
 export default function Dashboard() {
   const { data: leads = [] } = useQuery({
-    queryKey: ["leads-summary"],
-    queryFn: () => entities.Lead.list("-created_date", 100),
+    queryKey: ["leads"],
+    queryFn: fetchCombinedLeads,
   });
 
   const stats = [
@@ -128,28 +130,28 @@ export default function Dashboard() {
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 + (idx * 0.05) }}
-                className="px-8 py-5 flex items-center justify-between hover:bg-slate-50/50 transition-colors group"
+                className="px-6 py-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors group"
               >
-                <div className="flex items-center gap-5">
-                  <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-500 font-black text-lg transition-all group-hover:bg-blue-600 group-hover:text-white group-hover:rotate-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500 font-black text-base transition-all group-hover:bg-blue-600 group-hover:text-white group-hover:rotate-6">
                     {lead.company_name[0]}
                   </div>
                   <div>
-                    <p className="text-base font-bold text-slate-900 font-outfit">{lead.company_name}</p>
-                    <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-2">
+                    <p className="text-sm font-bold text-slate-900 font-outfit">{lead.company_name}</p>
+                    <p className="text-[10px] text-slate-500 mt-0.5 flex items-center gap-1.5">
                        <span>{lead.industry}</span>
                        <span className="w-1 h-1 bg-slate-300 rounded-full" />
                        <span className="capitalize">{lead.status}</span>
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-6 text-right">
+                <div className="flex items-center gap-4 text-right">
                   <div className="hidden sm:block">
-                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Precision</p>
-                     <p className="text-sm font-black text-slate-800">{lead.icp_score}%</p>
+                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Precision</p>
+                     <p className="text-xs font-black text-slate-800">{lead.icp_score}%</p>
                   </div>
-                  <div className="p-2 rounded-lg bg-slate-50 text-slate-300 group-hover:text-blue-600 group-hover:bg-blue-50 transition-all">
-                     <MousePointer2 className="w-4 h-4" />
+                  <div className="p-1.5 rounded-lg bg-slate-50 text-slate-300 group-hover:text-blue-600 group-hover:bg-blue-50 transition-all">
+                     <MousePointer2 className="w-3.5 h-3.5" />
                   </div>
                 </div>
               </motion.div>

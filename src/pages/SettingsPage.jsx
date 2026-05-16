@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { 
   Save, 
   Brain, 
@@ -23,6 +23,7 @@ import { toast } from "sonner";
 export default function SettingsPage() {
   const [settings, setSettings] = useState({});
   const [isSaving, setIsSaving] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data: initialSettings = [], isLoading } = useQuery({
     queryKey: ["settings"],
@@ -52,6 +53,11 @@ export default function SettingsPage() {
         { key: 'icp_keywords', category: 'icp', label: 'Keywords' },
         { key: 'icp_description', category: 'icp', label: 'Ideal Profile' },
         { key: 'target_location', category: 'icp', label: 'Location' },
+        { key: 'lead_count', category: 'icp', label: 'Lead Count' },
+        { key: 'industry', category: 'icp', label: 'Industry' },
+        { key: 'company_size', category: 'icp', label: 'Company Size' },
+        { key: 'target_titles', category: 'icp', label: 'Target Titles' },
+        { key: 'exclusions', category: 'icp', label: 'Exclusions' },
         { key: 'sender_name', category: 'gmail', label: 'Sender Name' },
         { key: 'sender_email', category: 'gmail', label: 'Sender Email' },
         { key: 'sender_company', category: 'gmail', label: 'Company' },
@@ -65,6 +71,7 @@ export default function SettingsPage() {
         }
       }
 
+      await queryClient.invalidateQueries(["settings"]);
       toast.success("Configuration synchronized.");
     } catch (error) {
       toast.error("Failed to update settings.");
@@ -114,7 +121,7 @@ export default function SettingsPage() {
                   onChange={(e) => handleChange('llm_provider', e.target.value)}
                   className="w-full h-11 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 >
-                  <option value="gemini">Google Gemini (Gemini 3.1 Flash-Lite)</option>
+                  <option value="gemini">Google Gemini (Gemini 2.0 Flash)</option>
                   <option value="groq">Groq (Llama 3)</option>
                   <option value="huggingface">Hugging Face (Free)</option>
                 </select>
@@ -136,32 +143,82 @@ export default function SettingsPage() {
           </TabsContent>
 
           <TabsContent value="icp" className="mt-0 space-y-8">
-             <div className="space-y-3">
-                <Label className="text-slate-600 font-bold uppercase text-[10px] tracking-widest">Ideal Customer Profile</Label>
-                <textarea 
-                  className="w-full min-h-[120px] rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                  placeholder="Describe your target customer in detail..."
-                  value={settings.icp_description || ""}
-                  onChange={(e) => handleChange('icp_description', e.target.value)}
-                />
+             <div className="grid md:grid-cols-2 gap-8">
+               <div className="space-y-3">
+                  <Label className="text-slate-600 font-bold uppercase text-[10px] tracking-widest">Ideal Customer Profile</Label>
+                  <textarea 
+                    className="w-full min-h-[120px] rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    placeholder="Describe your target customer in detail..."
+                    value={settings.icp_description || ""}
+                    onChange={(e) => handleChange('icp_description', e.target.value)}
+                  />
+               </div>
+               <div className="space-y-3">
+                  <Label className="text-slate-600 font-bold uppercase text-[10px] tracking-widest">Exclusion List</Label>
+                  <textarea 
+                    className="w-full min-h-[120px] rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    placeholder="Zoho, Darwinbox, Keka..."
+                    value={settings.exclusions || ""}
+                    onChange={(e) => handleChange('exclusions', e.target.value)}
+                  />
+               </div>
              </div>
              <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-3">
-                  <Label className="text-slate-600 font-bold uppercase text-[10px] tracking-widest">Keywords</Label>
+                  <Label className="text-slate-600 font-bold uppercase text-[10px] tracking-widest">Industry / Vertical</Label>
                   <Input 
                     className="h-11 rounded-lg border-slate-200"
-                    placeholder="SaaS, Real Estate..."
+                    placeholder="HR Tech, Fintech..."
+                    value={settings.industry || ""}
+                    onChange={(e) => handleChange('industry', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-3">
+                  <Label className="text-slate-600 font-bold uppercase text-[10px] tracking-widest">Keywords / Signals</Label>
+                  <Input 
+                    className="h-11 rounded-lg border-slate-200"
+                    placeholder="payroll, employee engagement..."
                     value={settings.icp_keywords || ""}
                     onChange={(e) => handleChange('icp_keywords', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-3">
+                  <Label className="text-slate-600 font-bold uppercase text-[10px] tracking-widest">Target Roles / Titles</Label>
+                  <Input 
+                    className="h-11 rounded-lg border-slate-200"
+                    placeholder="VP HR, CHRO, Head of People..."
+                    value={settings.target_titles || ""}
+                    onChange={(e) => handleChange('target_titles', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-3">
+                  <Label className="text-slate-600 font-bold uppercase text-[10px] tracking-widest">Company Size Range</Label>
+                  <Input 
+                    className="h-11 rounded-lg border-slate-200"
+                    placeholder="50-500 employees..."
+                    value={settings.company_size || ""}
+                    onChange={(e) => handleChange('company_size', e.target.value)}
                   />
                 </div>
                 <div className="space-y-3">
                   <Label className="text-slate-600 font-bold uppercase text-[10px] tracking-widest">Target Territory</Label>
                   <Input 
                     className="h-11 rounded-lg border-slate-200"
-                    placeholder="United States, Europe..."
+                    placeholder="Bangalore, Mumbai, Delhi NCR..."
                     value={settings.target_location || ""}
                     onChange={(e) => handleChange('target_location', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-3">
+                  <Label className="text-slate-600 font-bold uppercase text-[10px] tracking-widest">Target Lead Count</Label>
+                  <Input 
+                    type="number"
+                    min="1"
+                    max="20"
+                    className="h-11 rounded-lg border-slate-200"
+                    placeholder="e.g. 10"
+                    value={settings.lead_count || ""}
+                    onChange={(e) => handleChange('lead_count', e.target.value)}
                   />
                 </div>
              </div>

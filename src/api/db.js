@@ -40,6 +40,23 @@ export const entities = {
       const newData = data.filter(l => l.id !== id);
       setStoredData('leads', newData);
       return { success: true };
+    },
+    clear: async () => {
+      setStoredData('leads', []);
+      return { success: true };
+    }
+  },
+  DeletedLead: {
+    list: async () => {
+      return getStoredData('deleted_leads');
+    },
+    create: async (id) => {
+      const data = getStoredData('deleted_leads');
+      if (!data.includes(id)) {
+        data.push(id);
+        setStoredData('deleted_leads', data);
+      }
+      return { id };
     }
   },
   AgentRun: {
@@ -75,18 +92,35 @@ export const entities = {
   },
   Settings: {
     list: async () => {
-      return getStoredData('settings');
+      try {
+        const response = await fetch('/api/settings');
+        if (!response.ok) throw new Error("Failed to load server settings");
+        return await response.json();
+      } catch (e) {
+        console.warn("Falling back to local storage settings:", e);
+        return getStoredData('settings');
+      }
     },
     upsert: async (key, value, category, label) => {
-      const data = getStoredData('settings');
-      const index = data.findIndex(s => s.key === key);
-      if (index !== -1) {
-        data[index] = { ...data[index], value };
-      } else {
-        data.push({ key, value, category, label });
+      try {
+        const response = await fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key, value, category, label })
+        });
+        if (!response.ok) throw new Error("Failed to save server settings");
+      } catch (e) {
+        console.warn("Saving to local storage as fallback:", e);
+        const data = getStoredData('settings');
+        const index = data.findIndex(s => s.key === key);
+        if (index !== -1) {
+          data[index] = { ...data[index], value };
+        } else {
+          data.push({ key, value, category, label });
+        }
+        setStoredData('settings', data);
       }
-      setStoredData('settings', data);
-      return data;
+      return { success: true };
     }
   }
 };

@@ -4,13 +4,14 @@ import { motion } from "framer-motion";
 
 const stages = [
   { id: 'discovering', label: 'Discovery', description: 'Deep-scanning B2B networks' },
+  { id: 'validating', label: 'Validation', description: 'Market-standard audit checks' },
   { id: 'enriching', label: 'Enrichment', description: 'Retrieving digital footprints' },
   { id: 'scoring', label: 'Intelligence', description: 'ICP relevance analysis' },
   { id: 'drafting', label: 'Personalization', description: 'Crafting semantic drafts' },
   { id: 'syncing', label: 'Synchronization', description: 'Exporting to cloud storage' },
 ];
 
-const stageOrder = ['idle', 'discovering', 'enriching', 'scoring', 'drafting', 'syncing', 'done'];
+const stageOrder = ['idle', 'discovering', 'validating', 'enriching', 'scoring', 'drafting', 'syncing', 'done'];
 
 export default function PipelineStatus({ currentStage, runStatus }) {
   const currentIdx = stageOrder.indexOf(currentStage);

@@ -26,11 +26,12 @@ import {
 import { entities } from "@/api/db";
 import StatsCard from "@/components/dashboard/StatsCard";
 import { formatDate } from "@/lib/utils";
+import { fetchCombinedLeads } from "@/lib/leadFetcher";
 
 export default function Analytics() {
   const { data: leads = [] } = useQuery({
     queryKey: ["leads"],
-    queryFn: () => entities.Lead.list("-created_date", 1000),
+    queryFn: fetchCombinedLeads,
   });
 
   const { data: runs = [] } = useQuery({

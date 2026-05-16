@@ -1,0 +1,56 @@
+[
+  {
+    "key": "llm_api_key",
+    "value": "AIzaSyBV4iUUNgmN3-R0Q8lWrQqAcWTpwCV-V_U",
+    "category": "llm",
+    "label": "API Key"
+  },
+  {
+    "key": "icp_keywords",
+    "value": "marketing, payroll, website development, andriod app, portfolios",
+    "category": "icp",
+    "label": "Keywords"
+  },
+  {
+    "key": "icp_description",
+    "value": "Ideal Customer Profile (ICP)\n\nTarget small and medium-sized businesses located in the specified target location that rely on customer acquisition, local visibility, appointments, bookings, or inbound leads to generate revenue.\n\nPrioritize businesses with:\n- Weak, poor, outdated websites\n- Poor SEO or low online visibility\n- Low Google review activity\n- No clear lead capture system\n- Slow or non-mobile-friendly websites\n- Limited social media activity\n- No automation or CRM usage\n- Generic branding or messaging\n- Poor conversion-focused design\n- Missing online booking/contact systems\n\nPreferred industries:\n- Restaurants\n- Cafes\n- Salons\n- Clinics\n- Gyms\n- Spas\n- Hotels\n- Real estate agencies\n- Retail stores\n- Local service businesses\n- Dental clinics\n- Law firms\n- Accounting firms\n- Home services\n- Educational institutes\n- Coaching Centers\n\nBusiness characteristics:\n- 5–200 employees\n- Locally operated or regional\n- Revenue-focused businesses\n- Likely decision makers:\n  Founder,\n  Owner,\n  Director,\n  Marketing Manager,\n  Operations Manager\n\nLead scoring priority:\n- Businesses with visible digital gaps\n- Companies actively operating online\n- Businesses with reachable contact details\n- Companies likely to benefit from marketing, automation, AI, website optimization, lead generation, CRM, or digital transformation services\n\nReject:\n- Large enterprises\n- Government organizations\n- Non-profits\n- Businesses without contact information\n- Businesses with strong enterprise-level digital infrastructure\n\nGoal:\nGenerate high-quality SMB leads that are likely to benefit from AI automation, lead generation systems, website improvements, customer engagement tools, or digital growth services.",
+    "category": "icp",
+    "label": "Ideal Profile"
+  },
+  {
+    "key": "target_location",
+    "value": "Amsterdam",
+    "category": "icp",
+    "label": "Location"
+  },
+  {
+    "key": "sheets_url",
+    "value": "https://script.google.com/macros/s/AKfycbwRhhiJwihbOeCYWFgRimGkn903r0ps7RqI_tt1fJQneRszerPklpod79LB44POA7j3/exec",
+    "category": "sheets",
+    "label": "Google Sheets URL"
+  },
+  {
+    "key": "lead_count",
+    "value": "20",
+    "category": "icp",
+    "label": "Lead Count"
+  },
+  {
+    "key": "industry",
+    "value": "Restaurants, Cafes, Salons, Clinics, Gyms, Spas, Hotels, Real estate agencies, Retail stores, Local service businesses, Dental clinics, Law firms, Accounting firms, Home services, Educational institutes, Coaching Centers",
+    "category": "icp",
+    "label": "Industry"
+  },
+  {
+    "key": "company_size",
+    "value": "50-500",
+    "category": "icp",
+    "label": "Company Size"
+  },
+  {
+    "key": "target_titles",
+    "value": "Founder, Owner, Director, Marketing Manager, Operations Manager",
+    "category": "icp",
+    "label": "Target Titles"
+  }
+]
